@@ -82,7 +82,7 @@ const CONFIG = {
     },
     {
       emoji: "😄", label: "happy", color: "y",
-      message: "{emoji} happy vibes today!! ✨ just wanted you to know~",
+      message: "{emoji} happy vibes today!! ✨ just wanted you to know",
       gif: "https://media.tenor.com/jFNsqM_JhX0AAAAC/happy-joy.gif"
     },
     {
@@ -92,7 +92,7 @@ const CONFIG = {
     },
     {
       emoji: "😴", label: "sleepy", color: "v",
-      message: "{emoji} sleepy baby mode 😴💤 thinking of you~",
+      message: "{emoji} sleepy baby mode 😴💤 thinking of you",
       gif: "https://media.tenor.com/BsA1CRmRv5QAAAAC/sleepy-tired.gif"
     },
     {
@@ -541,7 +541,7 @@ body::before{
   <div class="card">
     <div class="card-title">📸 surprise!</div>
     <div class="photo-wrap" id="photoWrap">
-      <div class="photo-placeholder" id="photoPlaceholder">
+      <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhoto()" style="cursor:pointer">
         <span class="pi">🫣</span>
         <div style="font-weight:800;color:var(--txt-l)">tap for a photo of us!</div>
       </div>
@@ -716,6 +716,11 @@ function applyRawStatus(text, ts) {
   }
 }
 
+/* ── Strip non-ASCII (emoji) for ntfy headers + body ── */
+function stripEmoji(s) {
+  return (s || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 /* ── ntfy silent vibe ── */
 async function sendNtfy(vibe) {
   try {
@@ -723,11 +728,11 @@ async function sendNtfy(vibe) {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
-        'Title': vibe.title,
+        'Title': stripEmoji(vibe.title),
         'Priority': 'default',
         'Tags': 'heart',
       },
-      body: vibe.message,
+      body: stripEmoji(vibe.message),
     });
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
     showToast(`${vibe.emoji} vibe sent!`);
@@ -750,11 +755,11 @@ async function sendCustomNtfy() {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
-        'Title': title,
+        'Title': stripEmoji(title),
         'Priority': 'default',
         'Tags': 'speech_balloon',
       },
-      body,
+      body: stripEmoji(body),
     });
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
     msgEl.value = '';
@@ -810,7 +815,7 @@ async function sendPoke() {
         'Priority': 'high',
         'Tags': 'bell',
       },
-      body: msg,
+      body: stripEmoji(msg),
     });
     if (!res.ok) console.error('[ntfy] sendPoke server error:', res.status);
   } catch(e) {
