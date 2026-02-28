@@ -136,16 +136,32 @@ const CONFIG = {
 
   /* ── 5. YOUR PHOTOS ──────────────────────────────────────────────
      Add as many as you like. She taps the button for a random one.
-     url     → direct image link. Best option: upload to imgur.com
-               and use the direct .jpg/.png link.
+     Files live in the images/ folder of the GitHub repo.
+     Naming convention used: images/1.jpg, images/2.jpg, …
+     url     → raw.githubusercontent.com direct link
      caption → sweet text shown below the photo                    */
   PHOTOS: [
-    {
-      url:     "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?w=600",
-      caption: "📸 add your own photo links here!"
-    },
-    // { url: "https://i.imgur.com/XXXXXXX.jpg", caption: "that one trip 🌏" },
-    // { url: "https://i.imgur.com/YYYYYYY.jpg", caption: "being cute as always 🥰" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/1.jpg",  caption: "us 🌸" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/2.jpg",  caption: "my favourite person 💕" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/3.jpg",  caption: "literally so cute 🥰" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/4.jpg",  caption: "this one lives in my head 🌷" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/5.jpg",  caption: "my whole heart 💗" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/6.jpg",  caption: "obsessed with this one 🎀" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/7.jpg",  caption: "you make everything better ✨" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/8.jpg",  caption: "my person 💫" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/9.jpg",  caption: "remember this? 🌷" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/10.jpg", caption: "the best day 💕" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/11.jpg", caption: "always 🌸" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/12.jpg", caption: "okay but SO cute 🥰" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/13.jpg", caption: "soft hours only 🧸" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/14.jpg", caption: "you + me 💗" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/15.jpg", caption: "this lives rent-free in my head 💫" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/16.jpg", caption: "look at us ✨" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/17.jpg", caption: "the cutest 🌷" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/18.jpg", caption: "my whole world 💕" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/19.jpg", caption: "okay i'm in love 🥹" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/20.jpg", caption: "forever and always 🌸" },
+    { url: "https://raw.githubusercontent.com/anujchoudhury/akshita_ping_page/main/images/21.jpg", caption: "just us 💌" },
   ],
 
   /* ── 6. POKE MESSAGES ────────────────────────────────────────────
@@ -360,11 +376,11 @@ body::before{
 
 /* PHOTO CARD */
 .photo-wrap{
-  border-radius:22px;overflow:hidden;position:relative;
+  border-radius:22px;overflow:visible;position:relative;
   min-height:200px;background:linear-gradient(135deg,#ffe4ef,#f0e4ff);
   display:flex;align-items:center;justify-content:center;
 }
-.photo-img{width:100%;border-radius:22px;display:none;box-shadow:0 8px 30px rgba(200,100,180,.25)}
+.photo-img{max-width:100%;max-height:70vh;width:auto;height:auto;border-radius:22px;display:none;box-shadow:0 8px 30px rgba(200,100,180,.25)}
 @keyframes photoIn{from{opacity:0;transform:scale(.85) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 .photo-placeholder{text-align:center;padding:30px;color:var(--txt-l)}
 .photo-placeholder .pi{font-size:3.5rem;display:block;margin-bottom:10px;animation:mascotBounce 2s ease-in-out infinite}
@@ -911,7 +927,16 @@ function connectSSE() {
     try {
       const data = JSON.parse(e.data);
       if (!data.message) return;  // keep-alive pings have no message
-      loadStatus();
+      // Apply status directly from SSE data — no extra HTTP round-trip needed
+      const msgLower = data.message.toLowerCase();
+      let found = null;
+      for (const key of Object.keys(CONFIG.STATUSES))
+        if (msgLower.includes(key)) { found = key; break; }
+      if (found) {
+        applyStatus(found, data.time);
+      } else {
+        applyRawStatus(data.message, data.time);
+      }
       if (Notification.permission === 'granted') {
         new Notification(data.title || 'Anuj sent something 💌', {
           body: data.message,
@@ -930,6 +955,7 @@ function connectSSE() {
 window.addEventListener('load', () => {
   spawnParticles();
   cycleMascot();
+  applyStatus('online');   // show online immediately; overwritten by loadStatus() if different
   loadStatus();
   setInterval(loadStatus, 60000);
   // Auto-restore SSE + notification button if permission was already granted
