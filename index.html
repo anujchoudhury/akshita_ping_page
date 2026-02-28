@@ -244,6 +244,14 @@ body::before{
 .status-text{font-weight:800;font-size:1rem;position:relative}
 .status-sub{font-size:.72rem;color:var(--txt-l);font-weight:600;position:relative}
 .status-time{margin-left:auto;font-size:.68rem;color:var(--txt-l);font-weight:600;position:relative}
+.notif-btn{
+  margin-top:10px;width:100%;padding:9px;border:none;border-radius:14px;
+  font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;
+  background:rgba(255,180,210,.2);color:var(--txt-l);
+  transition:background .2s ease;
+}
+.notif-btn:hover{background:rgba(255,180,210,.4)}
+.notif-btn.active{background:linear-gradient(135deg,#ffd6e8,#e8d6ff);color:#a040a0}
 
 /* MOOD GRID */
 .mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -459,6 +467,7 @@ body::before{
       </div>
       <div class="status-time" id="statusTime"></div>
     </div>
+    <button class="notif-btn" id="notifBtn" onclick="requestNotifPermission()">🔔 enable notifications</button>
   </div>
 
   <!-- MOOD — built from CONFIG.MOODS -->
@@ -612,10 +621,14 @@ async function loadStatus() {
     if (!lines.length) { applyStatus('online'); return; }
     const last  = JSON.parse(lines[lines.length - 1]);
     const msg   = (last.message || '').toLowerCase();
-    let found   = 'online';
+    let found = null;
     for (const key of Object.keys(CONFIG.STATUSES))
       if (msg.includes(key)) { found = key; break; }
-    applyStatus(found, last.time);
+    if (found) {
+      applyStatus(found, last.time);
+    } else {
+      applyRawStatus(last.message, last.time);
+    }
   } catch { applyStatus('online'); }
 }
 function applyStatus(key, ts) {
@@ -625,6 +638,20 @@ function applyStatus(key, ts) {
   const orb = document.getElementById('statusOrb');
   orb.style.background = s.color;
   orb.style.color      = s.color;
+  if (ts) {
+    const diff = Math.floor((Date.now() - ts * 1000) / 60000);
+    document.getElementById('statusTime').textContent =
+      diff < 1 ? 'just now' : diff < 60 ? `${diff}m ago` : `${Math.floor(diff/60)}h ago`;
+  } else {
+    document.getElementById('statusTime').textContent = 'live';
+  }
+}
+function applyRawStatus(text, ts) {
+  document.getElementById('statusText').textContent = text || 'online 💚';
+  document.getElementById('statusSub').textContent  = 'custom status~';
+  const orb = document.getElementById('statusOrb');
+  orb.style.background = '#ff85a1';
+  orb.style.color      = '#ff85a1';
   if (ts) {
     const diff = Math.floor((Date.now() - ts * 1000) / 60000);
     document.getElementById('statusTime').textContent =
@@ -826,12 +853,55 @@ function spawnConfetti() {
   }
 }
 
+/* ── Browser notifications + SSE ── */
+function requestNotifPermission() {
+  if (!('Notification' in window)) { showToast('notifications not supported 🥺'); return; }
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      document.getElementById('notifBtn').textContent = '🔔 notifications on!';
+      document.getElementById('notifBtn').classList.add('active');
+      connectSSE();
+    } else {
+      showToast('notifications blocked 🥺');
+    }
+  });
+}
+
+let _sseSource = null;
+function connectSSE() {
+  if (_sseSource) _sseSource.close();
+  _sseSource = new EventSource(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}/sse`);
+  _sseSource.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (!data.message) return;  // keep-alive pings have no message
+      loadStatus();
+      if (Notification.permission === 'granted') {
+        new Notification(data.title || 'Anuj sent something 💌', {
+          body: data.message,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><text y="20" font-size="20">🌸</text></svg>',
+        });
+      }
+    } catch {}
+  };
+  _sseSource.onerror = () => {
+    _sseSource.close();
+    setTimeout(connectSSE, 30000);  // reconnect after 30s on drop
+  };
+}
+
 /* ── Init ── */
 window.addEventListener('load', () => {
   spawnParticles();
   cycleMascot();
   loadStatus();
   setInterval(loadStatus, 60000);
+  // Auto-restore SSE + notification button if permission was already granted
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    document.getElementById('notifBtn').textContent = '🔔 notifications on!';
+    document.getElementById('notifBtn').classList.add('active');
+    connectSSE();
+  }
   // Handle deep links from home screen shortcuts (#poke, #mood, #photo, #chat)
   const hash = window.location.hash;
   if (hash) {
