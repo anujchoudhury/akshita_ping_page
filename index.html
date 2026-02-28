@@ -307,6 +307,26 @@ body::before{
 .ntfy-btn:active{transform:scale(.94)}
 .ntfy-note{font-size:.7rem;color:var(--txt-l);font-weight:700;text-align:center;background:rgba(255,200,220,.2);border-radius:12px;padding:9px;line-height:1.6}
 
+/* CUSTOM MESSAGE */
+.custom-msg-wrap{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.custom-msg-input{
+  width:100%;padding:11px 14px;border-radius:14px;
+  border:2px solid rgba(255,180,210,.4);font-family:'Nunito',sans-serif;
+  font-size:.85rem;font-weight:700;color:var(--txt);
+  background:white;resize:none;outline:none;
+  transition:border-color .2s ease;box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+.custom-msg-input:focus{border-color:var(--pink-d)}
+.custom-msg-send{
+  width:100%;padding:13px;border:none;border-radius:16px;
+  font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:900;
+  cursor:pointer;background:linear-gradient(135deg,#ffd6e8,#e8d6ff);
+  color:#a040a0;box-shadow:0 4px 16px rgba(200,100,200,.25);
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.custom-msg-send:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,100,200,.4)}
+.custom-msg-send:active{transform:scale(.97)}
+
 /* PHOTO CARD */
 .photo-wrap{
   border-radius:22px;overflow:hidden;position:relative;
@@ -455,9 +475,15 @@ body::before{
   <div class="card">
     <div class="card-title">✨ silent vibes — no whatsapp needed</div>
     <div class="ntfy-grid" id="vibeGrid"></div>
-    <div class="ntfy-note">
-      📲 these ping Anuj silently on his phone via the <strong>ntfy app</strong><br>
-      he subscribes to topic: <strong id="ntfyTopicDisplay"></strong>
+    <div class="custom-msg-wrap">
+      <input  class="custom-msg-input" id="customTitle"
+              type="text" maxlength="60"
+              placeholder="notification title (optional)"
+              value="Akshita says...">
+      <textarea class="custom-msg-input" id="customMsg"
+                rows="3" maxlength="300"
+                placeholder="type your message here~"></textarea>
+      <button class="custom-msg-send" onclick="sendCustomNtfy()">💌 send custom message</button>
     </div>
   </div>
 
@@ -628,6 +654,35 @@ async function sendNtfy(vibe) {
     burstHeartsAt(window.innerWidth / 2, window.innerHeight / 2);
   } catch(e) {
     console.error('[ntfy] sendNtfy failed:', e);
+    showToast('oops, try again 🥺');
+  }
+}
+
+/* ── Custom ntfy message ── */
+async function sendCustomNtfy() {
+  const msgEl   = document.getElementById('customMsg');
+  const titleEl = document.getElementById('customTitle');
+  const body    = msgEl.value.trim();
+  if (!body) { showToast('type something first 🥺'); return; }
+  // Strip non-ASCII chars from title so the HTTP header stays valid
+  const title = (titleEl.value.trim() || 'Akshita says...').replace(/[^\x20-\x7E]/g, '').trim() || 'Akshita says...';
+  try {
+    const res = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        'Title': title,
+        'Priority': 'default',
+        'Tags': 'speech_balloon',
+      },
+      body,
+    });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    msgEl.value = '';
+    showToast('💌 message sent!');
+    burstHeartsAt(window.innerWidth / 2, window.innerHeight / 2);
+  } catch(e) {
+    console.error('[ntfy] sendCustomNtfy failed:', e);
     showToast('oops, try again 🥺');
   }
 }
