@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Anuj 🌸">
+<title>hi Akshita 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="manifest" id="manifestLink">
+<script>
+// Web App Manifest — enables long-press quick action shortcuts on iOS home screen
+// iOS reads this at "Add to Home Screen" time
+const _manifest = {
+  name: "Anuj \uD83C\uDF38",
+  short_name: "Anuj \uD83C\uDF38",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#ffe4ef",
+  theme_color: "#ff85a1",
+  shortcuts: [
+    { name: "Poke Anuj \uD83D\uDC49", short_name: "Poke!", url: "./#poke" },
+    { name: "My Mood \uD83C\uDF08",   short_name: "Mood",  url: "./#mood" },
+    { name: "Surprise Photo \uD83D\uDCF8", short_name: "Photo", url: "./#photo" },
+    { name: "Text Anuj \uD83D\uDCAC", short_name: "Text",  url: "./#chat" }
+  ]
+};
+const _blob = new Blob([JSON.stringify(_manifest)],{type:'application/json'});
+document.getElementById('manifestLink').href = URL.createObjectURL(_blob);
+</script>
+<script>
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║              ✏️  YOUR CONFIG — ONLY EDIT THIS BLOCK             ║
+   ╠══════════════════════════════════════════════════════════════════╣
+   ║  Everything customisable lives here.                            ║
+   ║  The rest of the file never needs to be touched.               ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+const CONFIG = {
+
+  /* ── 1. YOUR WHATSAPP NUMBER ─────────────────────────────────────
+     Country code + number, no spaces, no +
+     India example → "15105705302"                                 */
+  WHATSAPP_NUMBER: "15105705302",
+
+  /* ── 2. NTFY TOPIC ───────────────────────────────────────────────
+     Any unique string. Install the free "ntfy" app on YOUR phone
+     and subscribe to this exact topic name to receive her vibes.
+     Example: "anuj-akshita-secret-2026"                           */
+  NTFY_TOPIC: "anuj-akshita-secret-2026",
+
+  /* ── 3. MOOD BUTTONS ─────────────────────────────────────────────
+     Tapping a mood immediately opens WhatsApp with the message
+     AND shows the GIF popup — no extra button needed.
+     
+     Fields:
+       emoji   → shown on the button
+       label   → caption under the button
+       color   → highlight colour key when selected
+                 y=yellow  b=blue  r=red  p=pink
+                 g=green   v=purple  o=orange  t=teal
+       message → sent to WhatsApp. {emoji} is replaced by the emoji.
+       gif     → direct URL of a GIF shown in the popup after tapping
+                 (Tenor / Giphy / Imgur direct .gif links all work)
+                 Set to "" to skip the GIF for that mood.           */
+  MOODS: [
+    {
+      emoji: "🥰", label: "in love", color: "p",
+      message: "{emoji} feeling SO in love right now 🥰 (it's definitely your fault Anuj)",
+      gif: "https://media.tenor.com/Q_eBV-5OEGUAAAAC/anime-love.gif"
+    },
+    {
+      emoji: "😄", label: "happy", color: "y",
+      message: "{emoji} happy vibes today!! ✨ just wanted you to know~",
+      gif: "https://media.tenor.com/jFNsqM_JhX0AAAAC/happy-joy.gif"
+    },
+    {
+      emoji: "🥺", label: "sad", color: "b",
+      message: "{emoji} a little sad rn... can you make it better? 🥺",
+      gif: "https://media.tenor.com/qmOEGcAUyYkAAAAC/sad-cry.gif"
+    },
+    {
+      emoji: "😴", label: "sleepy", color: "v",
+      message: "{emoji} sleepy baby mode 😴💤 thinking of you~",
+      gif: "https://media.tenor.com/BsA1CRmRv5QAAAAC/sleepy-tired.gif"
+    },
+    {
+      emoji: "😤", label: "annoyed", color: "r",
+      message: "{emoji} i am annoyed 😤 handle with care today lol",
+      gif: "https://media.tenor.com/MaFMd5ARSFMAAAAC/annoyed-mad.gif"
+    },
+    {
+      emoji: "🤪", label: "silly", color: "o",
+      message: "{emoji} silly gremlin mode activated 🤪 you've been warned",
+      gif: "https://media.tenor.com/5GCzCOtu7ZMAAAAC/silly-funny.gif"
+    },
+    {
+      emoji: "🍜", label: "hungry", color: "o",
+      message: "{emoji} ANUJ. FEED ME. 🍜 this is urgent and i am serious",
+      gif: "https://media.tenor.com/fMbN1YXHY7UAAAAC/hungry-food.gif"
+    },
+    {
+      emoji: "💕", label: "miss you", color: "p",
+      message: "{emoji} missing you SO MUCH 💕 come here immediately please",
+      gif: "https://media.tenor.com/ZY5e7KBFE2MAAAAC/missing-you-love.gif"
+    },
+  ],
+
+  /* ── 4. SILENT VIBES (sent via ntfy — no WhatsApp needed) ────────
+     These ping Anuj's phone silently via the ntfy app.
+     title   → notification title shown on his phone
+     emoji   → button emoji
+     label   → button label
+     message → notification body text                               */
+  VIBES: [
+    { emoji:"🍑", label:"cheeky",      title:"Cheeky 🍑",       message:"🍑 cheeky mode activated 👀" },
+    { emoji:"🫠", label:"melting",     title:"Melting 🫠",       message:"🫠 i am literally melting (your fault)" },
+    { emoji:"🧸", label:"cuddles",     title:"Needs cuddles 🧸", message:"🧸 cuddle me please RIGHT NOW" },
+    { emoji:"💀", label:"ded lol",     title:"Ded 💀",           message:"💀 ded lol... something happened" },
+    { emoji:"🌧️", label:"moody",      title:"Moody 🌧️",        message:"🌧️ moody day... be extra nice" },
+    { emoji:"🍦", label:"sweets pls", title:"Wants sweets 🍦",   message:"🍦 SWEETS. NOW. URGENT." },
+    { emoji:"🫶", label:"big luv",    title:"Big love 🫶",       message:"🫶 sending you big big love 💗" },
+    { emoji:"🐣", label:"baby mode",  title:"Baby mode 🐣",      message:"🐣 baby mode. handle with care." },
+  ],
+
+  /* ── 5. YOUR PHOTOS ──────────────────────────────────────────────
+     Add as many as you like. She taps the button for a random one.
+     url     → direct image link. Best option: upload to imgur.com
+               and use the direct .jpg/.png link.
+     caption → sweet text shown below the photo                    */
+  PHOTOS: [
+    {
+      url:     "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?w=600",
+      caption: "📸 add your own photo links here!"
+    },
+    // { url: "https://i.imgur.com/XXXXXXX.jpg", caption: "that one trip 🌏" },
+    // { url: "https://i.imgur.com/YYYYYYY.jpg", caption: "being cute as always 🥰" },
+  ],
+
+  /* ── 6. POKE MESSAGES ────────────────────────────────────────────
+     Sent to both WhatsApp and ntfy on each poke tap.
+     They escalate in order. After the list runs out, it auto-numbers. */
+  POKE_MESSAGES: [
+    "👉👈 poke!! pay attention to me Anuj~",
+    "👉👈 POKE!! i exist!! look at me!!",
+    "👉👈 okay but seriously... poke poke poke 😭",
+    "👉👈 *intensely pokes* hello?? is this thing on",
+  ],
+
+  /* ── 7. ANUJ'S STATUS ────────────────────────────────────────────
+     To update: open the ntfy app on your phone → publish a message
+     to your topic containing the KEY word below (e.g. type "missing").
+     She sees it refresh every 60 seconds with a colour orb.
+     color = orb + text accent colour.                              */
+  STATUSES: {
+    online:   { label:"online 💚",      sub:"available & probably thinking of you",  color:"#81c784" },
+    busy:     { label:"busy 🔴",         sub:"in a meeting / studying",               color:"#e57373" },
+    missing:  { label:"missing you 💜",  sub:"literally cannot stop thinking of you", color:"#9575cd" },
+    sleeping: { label:"sleeping 😴",     sub:"zZz... dreaming of you though",         color:"#64b5f6" },
+    gaming:   { label:"gaming 🎮",       sub:"one more game babe i promise",          color:"#ff8a65" },
+    food:     { label:"eating 🍜",       sub:"fuelling up, back soon",                color:"#a5d6a7" },
+  },
+
+};
+/* ╚══════════════════════════════════════════════════════════════════╝
+   END OF CONFIG — do not edit below this line
+   ════════════════════════════════════════════════════════════════════ */
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#ffb3c6;--pink-d:#ff85a1;--txt:#5a3e4b;--txt-l:#9e7a8a;
+  --card:rgba(255,255,255,0.72);
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Nunito',sans-serif;min-height:100vh;color:var(--txt)}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:linear-gradient(300deg,#ffe4ef,#f5d7f7,#d4eaff,#ffe8d6,#d7f5e8,#ffe4ef);
+  background-size:400% 400%;animation:gradShift 12s ease infinite;
+}
+@keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.3;pointer-events:none;z-index:0}
+.b1{width:350px;height:350px;background:#ffb3c6;top:-100px;left:-80px;animation:blobA 9s ease-in-out infinite alternate}
+.b2{width:280px;height:280px;background:#c8b8f5;top:35%;right:-70px;animation:blobB 11s ease-in-out infinite alternate}
+.b3{width:220px;height:220px;background:#b5ead7;bottom:8%;left:5%;animation:blobA 13s ease-in-out infinite alternate}
+.b4{width:180px;height:180px;background:#ffd6b0;top:60%;left:40%;animation:blobB 7s ease-in-out infinite alternate}
+@keyframes blobA{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,40px) scale(1.12)}}
+@keyframes blobB{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-20px,30px) scale(1.08)}}
+
+.particle{position:fixed;pointer-events:none;z-index:1;animation:particleDrift linear infinite;opacity:0;user-select:none}
+@keyframes particleDrift{
+  0%{transform:translateY(110vh) rotate(0deg) scale(.8);opacity:0}
+  8%{opacity:.8}92%{opacity:.8}
+  100%{transform:translateY(-80px) rotate(360deg) scale(1.1);opacity:0}
+}
+
+.container{position:relative;z-index:2;max-width:430px;margin:0 auto;padding:18px 16px 50px}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:26px;animation:fadeDown .8s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-28px)}to{opacity:1;transform:translateY(0)}}
+.mascot-wrap{margin-bottom:8px;animation:mascotBounce 2.8s ease-in-out infinite;display:inline-block}
+@keyframes mascotBounce{0%,100%{transform:translateY(0) rotate(-3deg)}30%{transform:translateY(-18px) rotate(3deg)}60%{transform:translateY(-8px) rotate(-2deg)}}
+.mascot{font-size:5rem;display:block;filter:drop-shadow(0 8px 18px rgba(255,120,160,.35));transition:opacity .3s ease,transform .4s cubic-bezier(.34,1.56,.64,1)}
+.header-title{
+  font-family:'Pacifico',cursive;font-size:2.4rem;background-size:200%;
+  background:linear-gradient(135deg,#ff7eb3 0%,#a78bfa 60%,#60c8f5 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:titleShimmer 4s ease infinite;
+}
+@keyframes titleShimmer{0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}}
+.header-sub{font-size:.9rem;color:var(--txt-l);font-weight:700;margin-top:5px;letter-spacing:.3px}
+
+/* CARDS */
+.card{
+  background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:28px;padding:20px 18px;margin-bottom:16px;
+  border:2px solid rgba(255,255,255,.85);
+  box-shadow:0 10px 40px rgba(255,150,180,.15),0 2px 10px rgba(0,0,0,.05);
+  animation:fadeUp .6s cubic-bezier(.34,1.56,.64,1) both;
+  transition:transform .3s ease,box-shadow .3s ease;
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 16px 50px rgba(255,150,180,.22)}
+.card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.12s}
+.card:nth-child(3){animation-delay:.19s}.card:nth-child(4){animation-delay:.26s}
+.card:nth-child(5){animation-delay:.33s}.card:nth-child(6){animation-delay:.40s}
+.card:nth-child(7){animation-delay:.47s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.card-title{font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--txt-l);margin-bottom:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.card-hint{font-size:.62rem;font-weight:600;text-transform:none;letter-spacing:0;color:var(--txt-l);opacity:.8}
+
+/* STATUS */
+.status-display{
+  display:flex;align-items:center;gap:14px;background:white;
+  border-radius:20px;padding:14px 18px;box-shadow:0 4px 18px rgba(0,0,0,.07);
+  position:relative;overflow:hidden;
+}
+.status-display::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,180,200,.15),rgba(200,180,255,.15))}
+.status-orb{width:18px;height:18px;border-radius:50%;flex-shrink:0;animation:orbPulse 2.2s ease-in-out infinite;transition:background .5s ease}
+@keyframes orbPulse{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.status-text{font-weight:800;font-size:1rem;position:relative}
+.status-sub{font-size:.72rem;color:var(--txt-l);font-weight:600;position:relative}
+.status-time{margin-left:auto;font-size:.68rem;color:var(--txt-l);font-weight:600;position:relative}
+
+/* MOOD GRID */
+.mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mood-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:white;border:2.5px solid transparent;border-radius:20px;
+  padding:13px 5px 11px;cursor:pointer;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  font-family:'Nunito',sans-serif;font-size:.63rem;font-weight:800;color:var(--txt-l);
+  box-shadow:0 3px 14px rgba(0,0,0,.07);
+}
+.mood-btn .me{font-size:1.85rem;line-height:1;display:block;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.mood-btn:hover .me{transform:scale(1.25) rotate(-8deg)}
+.mood-btn:active{transform:scale(.88)}
+.mood-btn:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(255,130,160,.28)}
+.mood-btn[data-c="y"].sel{border-color:#f5c842;background:linear-gradient(135deg,#fffde7,#fff9c4)}
+.mood-btn[data-c="b"].sel{border-color:#82b4e8;background:linear-gradient(135deg,#e8f4ff,#daeeff)}
+.mood-btn[data-c="r"].sel{border-color:#f08080;background:linear-gradient(135deg,#fff0f0,#ffe4e4)}
+.mood-btn[data-c="p"].sel{border-color:#f48fb1;background:linear-gradient(135deg,#fff0f5,#ffe4ee)}
+.mood-btn[data-c="g"].sel{border-color:#81c784;background:linear-gradient(135deg,#f0fff4,#e4fce9)}
+.mood-btn[data-c="v"].sel{border-color:#b39ddb;background:linear-gradient(135deg,#f5f0ff,#ede4ff)}
+.mood-btn[data-c="o"].sel{border-color:#ffb74d;background:linear-gradient(135deg,#fff8f0,#ffeedd)}
+.mood-btn[data-c="t"].sel{border-color:#4db6ac;background:linear-gradient(135deg,#f0fffd,#dffbf8)}
+
+/* GIF POPUP */
+.gif-overlay{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(80,30,55,.6);backdrop-filter:blur(12px);
+  opacity:0;pointer-events:none;transition:opacity .3s ease;
+}
+.gif-overlay.open{opacity:1;pointer-events:all}
+.gif-box{
+  background:white;border-radius:28px;padding:18px;max-width:88vw;text-align:center;
+  transform:scale(.85);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.gif-overlay.open .gif-box{transform:scale(1)}
+.gif-img{width:100%;max-height:52vh;object-fit:contain;border-radius:18px;display:block}
+.gif-caption{margin-top:12px;font-weight:800;font-size:1rem;color:var(--txt)}
+.gif-sub{font-size:.78rem;color:var(--txt-l);font-weight:600;margin-top:4px}
+.gif-close{
+  margin-top:14px;padding:11px 30px;border:none;border-radius:50px;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;cursor:pointer;
+  background:linear-gradient(135deg,#ff85a1,#d4a1f5);color:white;
+  box-shadow:0 6px 20px rgba(255,100,150,.35);transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.gif-close:hover{transform:scale(1.06)}
+.gif-close:active{transform:scale(.95)}
+
+/* NTFY VIBES */
+.ntfy-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.ntfy-btn{
+  display:flex;align-items:center;gap:10px;padding:13px 14px;
+  background:white;border:2px solid transparent;border-radius:18px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;color:var(--txt);
+  box-shadow:0 3px 12px rgba(0,0,0,.07);transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.ntfy-btn .ne{font-size:1.4rem}
+.ntfy-btn:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(200,100,200,.22);border-color:var(--pink)}
+.ntfy-btn:active{transform:scale(.94)}
+.ntfy-note{font-size:.7rem;color:var(--txt-l);font-weight:700;text-align:center;background:rgba(255,200,220,.2);border-radius:12px;padding:9px;line-height:1.6}
+
+/* PHOTO CARD */
+.photo-wrap{
+  border-radius:22px;overflow:hidden;position:relative;
+  min-height:200px;background:linear-gradient(135deg,#ffe4ef,#f0e4ff);
+  display:flex;align-items:center;justify-content:center;
+}
+.photo-img{width:100%;border-radius:22px;display:none;box-shadow:0 8px 30px rgba(200,100,180,.25)}
+@keyframes photoIn{from{opacity:0;transform:scale(.85) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.photo-placeholder{text-align:center;padding:30px;color:var(--txt-l)}
+.photo-placeholder .pi{font-size:3.5rem;display:block;margin-bottom:10px;animation:mascotBounce 2s ease-in-out infinite}
+.photo-caption{
+  position:absolute;bottom:0;left:0;right:0;padding:14px;
+  background:linear-gradient(transparent,rgba(255,180,200,.85));
+  font-weight:800;color:#c04a7a;font-size:.85rem;text-align:center;display:none;
+}
+.photo-btn{
+  width:100%;margin-top:14px;padding:14px;border:none;border-radius:18px;
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:900;cursor:pointer;
+  background:linear-gradient(135deg,#ffd6e8,#e8d6ff);color:#a040a0;
+  box-shadow:0 5px 18px rgba(200,100,200,.25);transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.photo-btn:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(200,100,200,.4)}
+.photo-btn:active{transform:scale(.96)}
+
+/* POKE */
+.poke-btn{
+  width:100%;padding:20px;border:none;border-radius:26px;
+  font-family:'Pacifico',cursive;font-size:1.5rem;cursor:pointer;
+  background:linear-gradient(135deg,#ffcce5,#e8b8f8,#b8d8f8);background-size:200%;
+  color:#c04a7a;box-shadow:0 10px 32px rgba(255,120,180,.35);
+  position:relative;overflow:hidden;animation:gradShift 4s ease infinite;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.poke-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.45),transparent);border-radius:inherit}
+.poke-btn:hover{transform:translateY(-4px);box-shadow:0 18px 42px rgba(255,120,180,.5)}
+.poke-btn:active{transform:scale(.93)}
+@keyframes wiggle{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-14deg) scale(1.12)}40%{transform:rotate(14deg) scale(1.12)}60%{transform:rotate(-8deg) scale(1.06)}80%{transform:rotate(8deg) scale(1.06)}}
+.wiggling{animation:wiggle .5s ease!important}
+.poke-sub{margin-top:9px;font-size:.75rem;color:var(--txt-l);font-weight:700;text-align:center}
+
+/* WA BUTTONS */
+.wa-grid{display:flex;flex-direction:column;gap:10px}
+.wa-btn{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:white;border:2px solid rgba(255,255,255,.8);border-radius:20px;
+  text-decoration:none;color:var(--txt);font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.9rem;box-shadow:0 3px 14px rgba(0,0,0,.07);
+  cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.wa-btn:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,180,100,.2)}
+.wa-btn:active{transform:scale(.97)}
+.wa-icon{font-size:1.6rem}
+.wa-sub{font-size:.7rem;font-weight:600;color:var(--txt-l)}
+
+/* SIGNATURE */
+.signature{text-align:center;margin-top:10px;padding:20px 0 4px;animation:fadeUp .8s ease .6s both}
+.sig-heart{font-size:2.2rem;display:block;margin-bottom:6px;animation:heartbeat 1.5s ease-in-out infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.25)}28%{transform:scale(1)}42%{transform:scale(1.15)}}
+.sig-text{
+  font-family:'Pacifico',cursive;font-size:1.4rem;line-height:1.4;
+  background:linear-gradient(135deg,#ff7eb3,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sig-sub{font-size:.8rem;color:var(--txt-l);font-weight:700;margin-top:4px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:linear-gradient(135deg,#ff85a1,#c084f5);color:white;
+  padding:12px 26px;border-radius:50px;font-weight:800;font-size:.9rem;
+  box-shadow:0 8px 30px rgba(200,80,180,.45);z-index:999;white-space:nowrap;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* HEARTS & CONFETTI */
+.hb{position:fixed;pointer-events:none;z-index:1001;animation:hbFly 1.2s ease forwards}
+@keyframes hbFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.3)}}
+.conf{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:998;animation:confFall linear forwards}
+@keyframes confFall{0%{opacity:1;transform:translateY(-20px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+
+/* PHOTO MODAL */
+.modal{position:fixed;inset:0;z-index:1002;display:none;align-items:center;justify-content:center;background:rgba(80,30,55,.6);backdrop-filter:blur(10px)}
+.modal.open{display:flex}
+.modal-img{max-width:90vw;max-height:80vh;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:photoIn .5s cubic-bezier(.34,1.56,.64,1) both}
+.modal-close{position:absolute;top:20px;right:20px;font-size:2rem;cursor:pointer;color:white;text-shadow:0 2px 10px rgba(0,0,0,.4);transition:transform .2s}
+.modal-close:hover{transform:scale(1.2) rotate(10deg)}
+</style>
+</head>
+<body>
+
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+<div class="blob b4"></div>
+
+<!-- GIF popup -->
+<div class="gif-overlay" id="gifOverlay" onclick="closeGif(event)">
+  <div class="gif-box" id="gifBox">
+    <img class="gif-img" id="gifImg" src="" alt="">
+    <div class="gif-caption" id="gifCaption"></div>
+    <div class="gif-sub" id="gifSub"></div>
+    <button class="gif-close" onclick="closeGifBtn()">aww, close 💕</button>
+  </div>
+</div>
+
+<!-- Photo fullscreen modal -->
+<div class="modal" id="photoModal" onclick="closePhotoModal(event)">
+  <span class="modal-close" onclick="document.getElementById('photoModal').classList.remove('open')">✕</span>
+  <img class="modal-img" id="modalImg" src="" alt="Anuj 💕">
+</div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="mascot-wrap"><span class="mascot" id="mascot">🌸</span></div>
+    <div class="header-title">hi Akshita~</div>
+    <div class="header-sub">a little corner, just for you ✨</div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="card">
+    <div class="card-title">💚 Anuj is right now...</div>
+    <div class="status-display">
+      <div class="status-orb" id="statusOrb" style="background:#81c784;color:#81c784"></div>
+      <div>
+        <div class="status-text" id="statusText">fetching~</div>
+        <div class="status-sub"  id="statusSub">checking on him...</div>
+      </div>
+      <div class="status-time" id="statusTime"></div>
+    </div>
+  </div>
+
+  <!-- MOOD — built from CONFIG.MOODS -->
+  <div id="mood" style="scroll-margin-top:10px"></div>
+  <div class="card">
+    <div class="card-title">
+      🌈 how are you feeling?
+      <span class="card-hint">(tap → sends instantly!)</span>
+    </div>
+    <div class="mood-grid" id="moodGrid"></div>
+  </div>
+
+  <!-- SILENT VIBES — built from CONFIG.VIBES -->
+  <div class="card">
+    <div class="card-title">✨ silent vibes — no whatsapp needed</div>
+    <div class="ntfy-grid" id="vibeGrid"></div>
+    <div class="ntfy-note">
+      📲 these ping Anuj silently on his phone via the <strong>ntfy app</strong><br>
+      he subscribes to topic: <strong id="ntfyTopicDisplay"></strong>
+    </div>
+  </div>
+
+  <!-- RANDOM PHOTO -->
+  <div id="photo" style="scroll-margin-top:10px"></div>
+  <div class="card">
+    <div class="card-title">📸 surprise!</div>
+    <div class="photo-wrap" id="photoWrap">
+      <div class="photo-placeholder" id="photoPlaceholder">
+        <span class="pi">🫣</span>
+        <div style="font-weight:800;color:var(--txt-l)">tap for a photo of us!</div>
+      </div>
+      <img class="photo-img" id="photoImg" src="" alt="Anuj 💕">
+      <div class="photo-caption" id="photoCaption"></div>
+    </div>
+    <button class="photo-btn" onclick="showPhoto()">🎲 show me another one~</button>
+  </div>
+
+  <!-- POKE -->
+  <div id="poke" style="scroll-margin-top:10px"></div>
+  <div class="card">
+    <button class="poke-btn" id="pokeBtn" onclick="sendPoke()">👉 poke poke! 👈</button>
+    <div class="poke-sub">tap to demand his immediate attention 🌸</div>
+  </div>
+
+  <!-- WHATSAPP -->
+  <div id="chat" style="scroll-margin-top:10px"></div>
+  <div class="card">
+    <div class="card-title">💬 quick connect</div>
+    <div class="wa-grid">
+      <a class="wa-btn" href="#" onclick="openWA('call');return false">
+        <span class="wa-icon">📞</span>
+        <div><div>call Anuj</div><div class="wa-sub">open whatsapp call</div></div>
+      </a>
+      <a class="wa-btn" href="#" onclick="openWA('chat');return false">
+        <span class="wa-icon">💬</span>
+        <div><div>text Anuj</div><div class="wa-sub">open whatsapp chat</div></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="signature">
+    <span class="sig-heart">💌</span>
+    <div class="sig-text">Yours, Anuj</div>
+    <div class="sig-sub">made this just for you 🌷</div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════
+   RUNTIME — do not touch
+   ════════════════════════ */
+
+let photoIndex = -1;
+let pokeCount  = 0;
+
+/* Build mood grid */
+(function() {
+  const grid = document.getElementById('moodGrid');
+  CONFIG.MOODS.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'mood-btn';
+    btn.dataset.c   = m.color;
+    btn.dataset.idx = i;
+    btn.innerHTML   = `<span class="me">${m.emoji}</span><span>${m.label}</span>`;
+    btn.onclick     = () => onMoodTap(m, btn);
+    grid.appendChild(btn);
+  });
+})();
+
+/* Build vibe grid */
+(function() {
+  document.getElementById('ntfyTopicDisplay').textContent = CONFIG.NTFY_TOPIC;
+  const grid = document.getElementById('vibeGrid');
+  CONFIG.VIBES.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'ntfy-btn';
+    btn.innerHTML = `<span class="ne">${v.emoji}</span>${v.label}`;
+    btn.onclick   = () => sendNtfy(v);
+    grid.appendChild(btn);
+  });
+})();
+
+/* ── Mood tap: instant WA + GIF popup ── */
+function onMoodTap(mood, btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  burstHeartsAt(
+    btn.getBoundingClientRect().left + btn.offsetWidth / 2,
+    btn.getBoundingClientRect().top  + btn.offsetHeight / 2
+  );
+  // open WhatsApp immediately
+  const msg = mood.message.replace(/\{emoji\}/g, mood.emoji);
+  window.open(getWAUrl(msg), '_blank');
+  // tiny delay so WA opens before the overlay
+  setTimeout(() => showGif(mood), 400);
+  showToast(`Sent ${mood.emoji} to Anuj! 💌`);
+  spawnConfetti();
+}
+
+/* ── GIF popup ── */
+function showGif(mood) {
+  if (!mood.gif) return;
+  document.getElementById('gifImg').src        = mood.gif;
+  document.getElementById('gifCaption').textContent = `${mood.emoji} ${mood.label} mode!`;
+  document.getElementById('gifSub').textContent     = 'sent to Anuj 💌';
+  document.getElementById('gifOverlay').classList.add('open');
+}
+function closeGif(e) {
+  if (e.target === document.getElementById('gifOverlay')) closeGifBtn();
+}
+function closeGifBtn() {
+  document.getElementById('gifOverlay').classList.remove('open');
+  document.getElementById('gifImg').src = '';
+}
+
+/* ── Status ── */
+async function loadStatus() {
+  try {
+    const res   = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}/json?poll=1&since=12h`);
+    const text  = await res.text();
+    const lines = text.trim().split('\n').filter(Boolean);
+    if (!lines.length) { applyStatus('online'); return; }
+    const last  = JSON.parse(lines[lines.length - 1]);
+    const msg   = (last.message || '').toLowerCase();
+    let found   = 'online';
+    for (const key of Object.keys(CONFIG.STATUSES))
+      if (msg.includes(key)) { found = key; break; }
+    applyStatus(found, last.time);
+  } catch { applyStatus('online'); }
+}
+function applyStatus(key, ts) {
+  const s = CONFIG.STATUSES[key] || CONFIG.STATUSES.online;
+  document.getElementById('statusText').textContent = s.label;
+  document.getElementById('statusSub').textContent  = s.sub;
+  const orb = document.getElementById('statusOrb');
+  orb.style.background = s.color;
+  orb.style.color      = s.color;
+  if (ts) {
+    const diff = Math.floor((Date.now() - ts * 1000) / 60000);
+    document.getElementById('statusTime').textContent =
+      diff < 1 ? 'just now' : diff < 60 ? `${diff}m ago` : `${Math.floor(diff/60)}h ago`;
+  } else {
+    document.getElementById('statusTime').textContent = 'live';
+  }
+}
+
+/* ── ntfy silent vibe ── */
+async function sendNtfy(vibe) {
+  try {
+    await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
+      method: 'POST',
+      headers: { 'Title': `Akshita says: ${vibe.title}`, 'Priority': 'default', 'Tags': 'heart' },
+      body: vibe.message,
+    });
+    showToast(`${vibe.emoji} vibe sent!`);
+    burstHeartsAt(window.innerWidth / 2, window.innerHeight / 2);
+  } catch { showToast('oops, try again 🥺'); }
+}
+
+/* ── Photos ── */
+function showPhoto() {
+  const ph = CONFIG.PHOTOS;
+  if (!ph.length) { showToast('No photos yet!'); return; }
+  let next;
+  do { next = Math.floor(Math.random() * ph.length); } while (next === photoIndex && ph.length > 1);
+  photoIndex = next;
+  const photo = ph[next];
+  const img   = document.getElementById('photoImg');
+  img.style.display = 'none';
+  img.onload = () => {
+    document.getElementById('photoPlaceholder').style.display = 'none';
+    img.style.animation = 'none'; void img.offsetWidth;
+    img.style.animation = 'photoIn .5s cubic-bezier(.34,1.56,.64,1) both';
+    img.style.display = 'block';
+    const cap = document.getElementById('photoCaption');
+    cap.textContent  = photo.caption || '💕';
+    cap.style.display = 'block';
+    burstHeartsAt(window.innerWidth / 2, window.innerHeight / 2);
+  };
+  img.onerror = () => showToast('Photo not loading 🥺');
+  img.src = photo.url;
+}
+
+/* ── Poke ── */
+async function sendPoke() {
+  pokeCount++;
+  const btn = document.getElementById('pokeBtn');
+  btn.classList.remove('wiggling'); void btn.offsetWidth; btn.classList.add('wiggling');
+  setTimeout(() => btn.classList.remove('wiggling'), 550);
+  const msg = pokeCount <= CONFIG.POKE_MESSAGES.length
+    ? CONFIG.POKE_MESSAGES[pokeCount - 1]
+    : `👉👈 poke #${pokeCount}. i will not stop. ever.`;
+  window.open(getWAUrl(msg), '_blank');
+  try {
+    await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
+      method: 'POST',
+      headers: { 'Title': 'Akshita poked you!! 👉👈', 'Priority': 'high', 'Tags': 'bell' },
+      body: msg,
+    });
+  } catch {}
+  showToast('Poked Anuj! 👉👈');
+  burstHeartsAt(window.innerWidth / 2, window.innerHeight * .55);
+}
+
+/* ── WhatsApp ── */
+function getWAUrl(msg) {
+  return `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+function openWA(type) {
+  if (type === 'call') window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}`, '_blank');
+  else window.open(getWAUrl('hey! 🌸'), '_blank');
+}
+
+/* ── Photo modal (long press) ── */
+function closePhotoModal(e) {
+  if (e.target === document.getElementById('photoModal'))
+    document.getElementById('photoModal').classList.remove('open');
+}
+(() => {
+  const pw = document.getElementById('photoWrap'); let lt;
+  pw.addEventListener('touchstart', () => { lt = setTimeout(() => {
+    const src = document.getElementById('photoImg').src;
+    if (src) { document.getElementById('modalImg').src = src;
+      document.getElementById('photoModal').classList.add('open'); }
+  }, 600); });
+  pw.addEventListener('touchend', () => clearTimeout(lt));
+})();
+
+/* ── Mascot ── */
+const mascots = ['🌸','💕','🌷','✨','🎀','🍓','🌙','💫','🧸','🌺'];
+let mi = 0;
+function cycleMascot() {
+  const el = document.getElementById('mascot');
+  el.style.opacity = '0'; el.style.transform = 'scale(.5) rotate(-20deg)';
+  setTimeout(() => {
+    mi = (mi + 1) % mascots.length; el.textContent = mascots[mi];
+    el.style.opacity = '1'; el.style.transform = 'scale(1) rotate(0)';
+  }, 300);
+  setTimeout(cycleMascot, 3500);
+}
+
+/* ── Particles ── */
+const pChars = ['✨','🌸','💫','⭐','🩷','🌷','💕','🎀','🌺','💗'];
+function spawnParticles() {
+  function one() {
+    const s = document.createElement('div'); s.className = 'particle';
+    s.textContent = pChars[Math.floor(Math.random() * pChars.length)];
+    s.style.cssText = `left:${Math.random()*100}vw;font-size:${12+Math.random()*14}px;animation-duration:${7+Math.random()*9}s`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 16000);
+  }
+  one(); one(); setInterval(one, 1800);
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ── Hearts ── */
+function burstHeartsAt(x, y) {
+  const chars = ['💕','💗','💖','✨','🌸','💫','🩷','🌷'];
+  for (let i = 0; i < 10; i++) {
+    const h = document.createElement('div'); h.className = 'hb';
+    h.textContent = chars[Math.floor(Math.random() * chars.length)];
+    h.style.cssText = `left:${x}px;top:${y}px;font-size:${16+Math.random()*18}px`;
+    h.style.setProperty('--tx', (Math.random()-.5)*180+'px');
+    h.style.setProperty('--ty', -(Math.random()*130+40)+'px');
+    h.style.animationDuration = (.8+Math.random()*.7)+'s';
+    document.body.appendChild(h); setTimeout(() => h.remove(), 1600);
+  }
+}
+
+/* ── Confetti ── */
+function spawnConfetti() {
+  const cols = ['#ff85a1','#d4a1f5','#b5ead7','#ffd6b0','#fff4b2','#c8b8f5'];
+  for (let i = 0; i < 35; i++) {
+    const c = document.createElement('div'); c.className = 'conf';
+    c.style.cssText = `left:${Math.random()*100}vw;top:-20px;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
+      animation-duration:${1.5+Math.random()*2.5}s;
+      animation-delay:${Math.random()*.8}s`;
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4000);
+  }
+}
+
+/* ── Init ── */
+window.addEventListener('load', () => {
+  spawnParticles();
+  cycleMascot();
+  loadStatus();
+  setInterval(loadStatus, 60000);
+  // Handle deep links from home screen shortcuts (#poke, #mood, #photo, #chat)
+  const hash = window.location.hash;
+  if (hash) {
+    setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      // auto-trigger actions for certain shortcuts
+      if (hash === '#photo') setTimeout(showPhoto, 600);
+    }, 800);
+  }
+});
+</script>
+</body>
+</html>
