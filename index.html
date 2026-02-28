@@ -21,7 +21,7 @@ const _manifest = {
   theme_color: "#ff85a1",
   shortcuts: [
     { name: "Poke Anuj \uD83D\uDC49", short_name: "Poke!", url: "./#poke" },
-    { name: "My Mood \uD83C\uDF08",   short_name: "Mood",  url: "./#mood" },
+    { name: "My Mood \uD83C\uDdF08",   short_name: "Mood",  url: "./#mood" },
     { name: "Surprise Photo \uD83D\uDCF8", short_name: "Photo", url: "./#photo" },
     { name: "Text Anuj \uD83D\uDCAC", short_name: "Text",  url: "./#chat" }
   ]
@@ -611,14 +611,25 @@ function applyStatus(key, ts) {
 /* ── ntfy silent vibe ── */
 async function sendNtfy(vibe) {
   try {
-    await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
+    // Title header must be ASCII-only — emoji removed, kept in body only
+    const safeTitle = `Akshita says: ${vibe.label}`;
+    const res = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
       method: 'POST',
-      headers: { 'Title': `Akshita says: ${vibe.title}`, 'Priority': 'default', 'Tags': 'heart' },
+      headers: {
+        'Content-Type': 'text/plain',
+        'Title': safeTitle,
+        'Priority': 'default',
+        'Tags': 'heart',
+      },
       body: vibe.message,
     });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
     showToast(`${vibe.emoji} vibe sent!`);
     burstHeartsAt(window.innerWidth / 2, window.innerHeight / 2);
-  } catch { showToast('oops, try again 🥺'); }
+  } catch(e) {
+    console.error('[ntfy] sendNtfy failed:', e);
+    showToast('oops, try again 🥺');
+  }
 }
 
 /* ── Photos ── */
@@ -656,12 +667,21 @@ async function sendPoke() {
     : `👉👈 poke #${pokeCount}. i will not stop. ever.`;
   window.open(getWAUrl(msg), '_blank');
   try {
-    await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
+    // Title header must be ASCII-only — emoji removed
+    const res = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
       method: 'POST',
-      headers: { 'Title': 'Akshita poked you!! 👉👈', 'Priority': 'high', 'Tags': 'bell' },
+      headers: {
+        'Content-Type': 'text/plain',
+        'Title': 'Akshita poked you!!',
+        'Priority': 'high',
+        'Tags': 'bell',
+      },
       body: msg,
     });
-  } catch {}
+    if (!res.ok) console.error('[ntfy] sendPoke server error:', res.status);
+  } catch(e) {
+    console.error('[ntfy] sendPoke failed:', e);
+  }
   showToast('Poked Anuj! 👉👈');
   burstHeartsAt(window.innerWidth / 2, window.innerHeight * .55);
 }
