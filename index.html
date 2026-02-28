@@ -44,11 +44,21 @@ const CONFIG = {
      India example → "15105705302"                                 */
   WHATSAPP_NUMBER: "15105705302",
 
-  /* ── 2. NTFY TOPIC ───────────────────────────────────────────────
-     Any unique string. Install the free "ntfy" app on YOUR phone
-     and subscribe to this exact topic name to receive her vibes.
-     Example: "anuj-akshita-secret-2026"                           */
-  NTFY_TOPIC: "anuj-akshita-secret-2026",
+  /* ── 2. NTFY TOPICS ──────────────────────────────────────────────
+     TWO separate topics are used to avoid cross-talk:
+
+     NTFY_TOPIC        → Akshita → Anuj direction.
+                         Anuj installs ntfy app and subscribes HERE
+                         to receive her vibes, pokes, and messages.
+
+     NTFY_STATUS_TOPIC → Anuj → Akshita direction.
+                         Anuj publishes his status/messages HERE
+                         (from ntfy.sh web or iOS Shortcut).
+                         Akshita's page reads from HERE for the
+                         "Anuj is right now..." card and browser
+                         notifications.                            */
+  NTFY_TOPIC:        "anuj-akshita-secret-2026",
+  NTFY_STATUS_TOPIC: "anuj-akshita-status-2026",
 
   /* ── 3. MOOD BUTTONS ─────────────────────────────────────────────
      Tapping a mood immediately opens WhatsApp with the message
@@ -335,6 +345,19 @@ body::before{
 .custom-msg-send:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,100,200,.4)}
 .custom-msg-send:active{transform:scale(.97)}
 
+/* VIBE CHIPS */
+.vibe-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px}
+.vibe-chip{
+  display:flex;align-items:center;gap:4px;padding:6px 11px;
+  background:white;border:1.5px solid rgba(255,180,210,.4);border-radius:50px;
+  font-family:'Nunito',sans-serif;font-size:.73rem;font-weight:800;color:var(--txt);
+  cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+.vibe-chip:hover{border-color:var(--pink-d);transform:translateY(-1px);box-shadow:0 5px 14px rgba(255,130,160,.22)}
+.vibe-chip:active{transform:scale(.93)}
+.vibe-chip.filled{border-color:var(--pink-d);background:linear-gradient(135deg,#fff0f5,#f5eeff)}
+
 /* PHOTO CARD */
 .photo-wrap{
   border-radius:22px;overflow:hidden;position:relative;
@@ -485,6 +508,7 @@ body::before{
     <div class="card-title">✨ silent vibes — no whatsapp needed</div>
     <div class="ntfy-grid" id="vibeGrid"></div>
     <div class="custom-msg-wrap">
+      <div class="vibe-chips" id="vibeChips"></div>
       <input  class="custom-msg-input" id="customTitle"
               type="text" maxlength="60"
               placeholder="notification title (optional)"
@@ -566,16 +590,31 @@ let pokeCount  = 0;
   });
 })();
 
-/* Build vibe grid */
+/* Build vibe grid + quick-fill chips */
 (function() {
-  document.getElementById('ntfyTopicDisplay').textContent = CONFIG.NTFY_TOPIC;
+  const topicEl = document.getElementById('ntfyTopicDisplay');
+  if (topicEl) topicEl.textContent = CONFIG.NTFY_TOPIC;
   const grid = document.getElementById('vibeGrid');
+  const chips = document.getElementById('vibeChips');
   CONFIG.VIBES.forEach(v => {
+    // main send button
     const btn = document.createElement('button');
     btn.className = 'ntfy-btn';
     btn.innerHTML = `<span class="ne">${v.emoji}</span>${v.label}`;
     btn.onclick   = () => sendNtfy(v);
     grid.appendChild(btn);
+    // quick-fill chip in the custom message area
+    const chip = document.createElement('button');
+    chip.className = 'vibe-chip';
+    chip.textContent = `${v.emoji} ${v.label}`;
+    chip.onclick = () => {
+      document.getElementById('customTitle').value = v.title;
+      document.getElementById('customMsg').value   = v.message;
+      document.querySelectorAll('.vibe-chip').forEach(c => c.classList.remove('filled'));
+      chip.classList.add('filled');
+      document.getElementById('customMsg').focus();
+    };
+    chips.appendChild(chip);
   });
 })();
 
@@ -615,7 +654,7 @@ function closeGifBtn() {
 /* ── Status ── */
 async function loadStatus() {
   try {
-    const res   = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}/json?poll=1&since=12h`);
+    const res   = await fetch(`https://ntfy.sh/${CONFIG.NTFY_STATUS_TOPIC}/json?poll=1&since=12h`);
     const text  = await res.text();
     const lines = text.trim().split('\n').filter(Boolean);
     if (!lines.length) { applyStatus('online'); return; }
@@ -664,13 +703,11 @@ function applyRawStatus(text, ts) {
 /* ── ntfy silent vibe ── */
 async function sendNtfy(vibe) {
   try {
-    // Title header must be ASCII-only — emoji removed, kept in body only
-    const safeTitle = `Akshita says: ${vibe.label}`;
     const res = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
-        'Title': safeTitle,
+        'Title': vibe.title,
         'Priority': 'default',
         'Tags': 'heart',
       },
@@ -691,8 +728,7 @@ async function sendCustomNtfy() {
   const titleEl = document.getElementById('customTitle');
   const body    = msgEl.value.trim();
   if (!body) { showToast('type something first 🥺'); return; }
-  // Strip non-ASCII chars from title so the HTTP header stays valid
-  const title = (titleEl.value.trim() || 'Akshita says...').replace(/[^\x20-\x7E]/g, '').trim() || 'Akshita says...';
+  const title = titleEl.value.trim() || 'Akshita says...';
   try {
     const res = await fetch(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}`, {
       method: 'POST',
@@ -870,7 +906,7 @@ function requestNotifPermission() {
 let _sseSource = null;
 function connectSSE() {
   if (_sseSource) _sseSource.close();
-  _sseSource = new EventSource(`https://ntfy.sh/${CONFIG.NTFY_TOPIC}/sse`);
+  _sseSource = new EventSource(`https://ntfy.sh/${CONFIG.NTFY_STATUS_TOPIC}/sse`);
   _sseSource.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data);
